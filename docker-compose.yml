@@ -1,0 +1,58 @@
+services:
+  mariadb:
+    build:
+      context: ./services/mariadb
+      dockerfile: Dockerfile
+    env_file:
+      - .secrets/db_credentials
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  wordpress:
+    build:
+      context: ./services/wordpress
+      dockerfile: Dockerfile
+    env_file:
+      - .secrets/wp_credentials
+    volumes:
+      - wordpress_data:/var/www/html
+    depends_on:
+      - mariadb
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./services/nginx
+      dockerfile: Dockerfile
+    depends_on:
+      - wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+    ports:
+      - "8443:443"
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mariadb_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/enetxeba/data2/mariadb
+      o: bind
+  wordpress_data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/enetxeba/data2/wordpress
+      o: bind
