@@ -28,8 +28,8 @@ if wp core is-installed --path=/var/www/html >/dev/null 2>&1; then
 else
   echo ">>> Instalando WordPress..."
   DOMAIN="${DOMAIN_NAME:-localhost}"
-  ADMIN_USER=admin
-  ADMIN_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)"
+  ADMIN_USER=${WORDPRESS_DB_USER}
+  ADMIN_PASS=${DB_PASSWORD}
   ADMIN_MAIL="admin@${DOMAIN}"
 
   wp core install \
