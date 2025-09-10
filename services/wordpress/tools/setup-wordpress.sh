@@ -25,6 +25,8 @@ cd /var/www/html
 
 if wp core is-installed --path=/var/www/html >/dev/null 2>&1; then
   echo ">>> WordPress ya instalado"
+  echo ${WORDPRESS_DB_USER}
+  echo  ${DB_PASSWORD}
 else
   echo ">>> Instalando WordPress..."
   DOMAIN="${DOMAIN_NAME:-localhost}"
