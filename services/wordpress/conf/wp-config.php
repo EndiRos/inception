@@ -1,7 +1,14 @@
 <?php
 define('DB_NAME', getenv('WORDPRESS_DB_NAME'));
 define('DB_USER', getenv('WORDPRESS_DB_USER'));
-define('DB_PASSWORD', getenv('WORDPRESS_DB_PASSWORD'));
+
+// Intentar leer desde secret, fallback a variable de entorno
+if (file_exists('/run/secrets/db_password')) {
+    define('DB_PASSWORD', trim(file_get_contents('/run/secrets/db_password')));
+} else {
+    define('DB_PASSWORD', getenv('WORDPRESS_DB_PASSWORD'));
+}
+
 define('DB_HOST', getenv('WORDPRESS_DB_HOST'));
 define('DB_CHARSET', 'utf8');
 define('DB_COLLATE', '');

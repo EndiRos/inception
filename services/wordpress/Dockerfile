@@ -19,7 +19,6 @@ RUN apk update && apk add --no-cache \
     curl \
     bash \
     mariadb-client \
-    cli \
     wget
 
 # Instalar WP-CLI
@@ -31,7 +30,9 @@ RUN adduser -D -g 'www' www && \
     mkdir -p /var/www/html && \
     chown -R www:www /var/www/html
 
-RUN mkdir -p /var/log/php82 && chown www:www /var/log/php82docker  
+RUN mkdir -p /var/log/php82 && chown www:www /var/log/php82 
+
+RUN ln -sf /usr/bin/php82 /usr/bin/php
 
 WORKDIR /var/www/html
 
