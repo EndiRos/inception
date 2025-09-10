@@ -17,8 +17,15 @@ RUN apk update && apk add --no-cache \
     php82-session \
     php82-mbstring \
     curl \
-    cli\
+    bash \
+    mariadb-client \
+    cli \
     wget
+
+# Instalar WP-CLI
+RUN wget https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar && \
+    chmod +x wp-cli.phar && \
+    mv wp-cli.phar /usr/local/bin/wp
 
 RUN adduser -D -g 'www' www && \
     mkdir -p /var/www/html && \
@@ -35,10 +42,12 @@ RUN wget https://wordpress.org/latest.tar.gz && \
 
 COPY conf/www.conf /etc/php82/php-fpm.d/www.conf
 COPY conf/wp-config.php /var/www/html/
-RUN chown www:www /etc/php82/php-fpm.d/www.conf /var/www/html/wp-config.php
+COPY tools/setup-wordpress.sh /usr/local/bin/setup-wordpress.sh
+RUN chmod +x /usr/local/bin/setup-wordpress.sh && \
+    chown www:www /etc/php82/php-fpm.d/www.conf /var/www/html/wp-config.php
 
 USER www
 
 EXPOSE 9000
 
-CMD [ "php-fpm82", "-F"]
+CMD ["/bin/sh", "-c", "/usr/local/bin/setup-wordpress.sh && php-fpm82 -F"]
