@@ -3,8 +3,12 @@ services:
     build:
       context: ./services/mariadb
       dockerfile: Dockerfile
-    env_file:
-      - .secrets/db_credentials
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+    secrets:
+      - db_root_password
+      - db_password
     volumes:
       - mariadb_data:/var/lib/mysql
     networks:
@@ -15,8 +19,12 @@ services:
     build:
       context: ./services/wordpress
       dockerfile: Dockerfile
-    env_file:
-      - .secrets/wp_credentials
+    environment:
+      - WORDPRESS_DB_HOST=${WORDPRESS_DB_HOST}
+      - WORDPRESS_DB_NAME=${WORDPRESS_DB_NAME}
+      - WORDPRESS_DB_USER=${WORDPRESS_DB_USER}
+    secrets:
+      - db_password
     volumes:
       - wordpress_data:/var/www/html
     depends_on:
@@ -34,7 +42,7 @@ services:
     volumes:
       - wordpress_data:/var/www/html
     ports:
-      - "8443:443"
+      - "443:443"
     networks:
       - app-network
     restart: unless-stopped
@@ -48,11 +56,11 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/enetxeba/data2/mariadb
+      device:  ${VOLUMES_PATH}/mariadb
       o: bind
   wordpress_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/enetxeba/data2/wordpress
+      device:  ${VOLUMES_PATH}/wordpress
       o: bind
