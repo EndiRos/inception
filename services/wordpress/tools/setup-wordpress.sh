@@ -1,26 +1,48 @@
 #!/bin/sh
 set -e
 
-# Obtener contraseñas desde secrets
-DB_PASSWORD=$(cat /run/secrets/db_password)
+# Password solo desde secret
+[ -f /run/secrets/db_password ] || { echo "Falta /run/secrets/db_password"; exit 1; }
+DB_PASSWORD="$(cat /run/secrets/db_password)"
 
-# Esperar a que MariaDB esté disponible
-echo ">>> Esperando a que MariaDB esté disponible..."
-COUNTER=0
-MAX_TRIES=30
+# Comprobar PHP/WP-CLI
+php --version >/dev/null
+wp --info >/dev/null
 
-until mysqladmin ping -h"${WORDPRESS_DB_HOST}" -u"${WORDPRESS_DB_USER}" -p"${DB_PASSWORD}" --silent || [ $COUNTER -eq $MAX_TRIES ]; do
-    echo ">>> Intento $COUNTER de $MAX_TRIES. MariaDB aún no está disponible..."
-    sleep 5
-    COUNTER=$((COUNTER+1))
+# Esperar a MariaDB con login real
+echo ">>> Esperando a MariaDB..."
+for i in $(seq 1 30); do
+  if mysql -h"$WORDPRESS_DB_HOST" -u"$WORDPRESS_DB_USER" -p"$DB_PASSWORD" -e "SELECT 1" >/dev/null 2>&1; then
+    echo ">>> MariaDB OK"
+    break
+  fi
+  echo ">>> Intento $i/30..."
+  sleep 2
+  [ "$i" -eq 30 ] && { echo "ERROR: MariaDB no responde"; exit 1; }
 done
 
-if [ $COUNTER -eq $MAX_TRIES ]; then
-    echo ">>> ERROR: MariaDB no respondió después de $MAX_TRIES intentos"
-    exit 1
+cd /var/www/html
+
+if wp core is-installed --path=/var/www/html >/dev/null 2>&1; then
+  echo ">>> WordPress ya instalado"
+else
+  echo ">>> Instalando WordPress..."
+  DOMAIN="${DOMAIN_NAME:-localhost}"
+  ADMIN_USER=admin
+  ADMIN_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)"
+  ADMIN_MAIL="admin@${DOMAIN}"
+
+  wp core install \
+    --url="https://${DOMAIN}" \
+    --title="Inception - 42 Project" \
+    --admin_user="${ADMIN_USER}" \
+    --admin_password="${ADMIN_PASS}" \
+    --admin_email="${ADMIN_MAIL}" \
+    --skip-email \
+    --path=/var/www/html
+
+  echo ">>> Admin: ${ADMIN_USER}  Pass: ${ADMIN_PASS}"
+  wp theme activate twentytwentythree --path=/var/www/html || true
 fi
 
-echo ">>> MariaDB está disponible"
-
-# Resto del script...
 exec php-fpm82 -F
