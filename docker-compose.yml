@@ -70,3 +70,5 @@ secrets:
     file: ./.secrets/db_root_password
   db_password:
     file: ./.secrets/db_password
+  wp_credentials:
+    file: ./.secrets/wp_credentials
