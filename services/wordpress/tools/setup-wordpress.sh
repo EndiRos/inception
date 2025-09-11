@@ -59,6 +59,13 @@ else
   SECOND_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)"
 fi
 
+# Email (permite override)
+SECOND_EMAIL="${WP_SECOND_EMAIL:-${SECOND_USER}@${DOMAIN}}"
+case "$SECOND_EMAIL" in
+  *@*.*) : ;;
+  *) SECOND_EMAIL="${SECOND_USER}@${DOMAIN}";;
+esac
+
 if wp user get "${SECOND_USER}" --path=/var/www/html >/dev/null 2>&1; then
   echo ">>> Usuario secundario '${SECOND_USER}' ya existe"
 else
