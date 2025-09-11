@@ -47,17 +47,15 @@ else
   wp theme activate twentytwentythree --path=/var/www/html || true
 fi
 
-[ -f /run/secrets/wp_credentials ] || { echo "Falta /run/secrets/wp_credentials"; exit 1; }
-WP_SECOND_PASSWORD="$(cat /run/secrets/wp_credentials)"
-
 # ---- Crear segundo usuario no admin (idempotente) ----
 SECOND_USER="${WORDPRESS_SECOND_USER}"
 SECOND_ROLE="${WP_SECOND_ROLE:-subscriber}"
 
 # Password estable opcional por env; si no, generar (solo se muestra al crear)
-if [ -n "${WP_SECOND_PASSWORD}" ]; then
-  SECOND_PASS="${WP_SECOND_PASSWORD}"
+if [ -f /run/secrets/wp_credentials ]; then
+  SECOND_PASS="$(tr -d '\r' </run/secrets/wp_credentials)"
 else
+  echo ">>> Secret wp_credentials no encontrado; generando password para segundo usuario"
   SECOND_PASS="$(tr -dc 'A-Za-z0-9' </dev/urandom | head -c 16)"
 fi
 
