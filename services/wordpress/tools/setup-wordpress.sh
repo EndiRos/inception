@@ -49,7 +49,7 @@ fi
 
 # ---- Crear segundo usuario no admin (idempotente) ----
 SECOND_USER="${WORDPRESS_SECOND_USER}"
-SECOND_ROLE="${WP_SECOND_ROLE:-subscriber}"
+SECOND_ROLE="${WORDPRESS_SECOND_ROLE:-subscriber}"
 
 # Password estable opcional por env; si no, generar (solo se muestra al crear)
 if [ -f /run/secrets/wp_credentials ]; then
@@ -60,7 +60,7 @@ else
 fi
 
 # Email (permite override)
-SECOND_EMAIL="${WP_SECOND_EMAIL:-${SECOND_USER}@${DOMAIN}}"
+SECOND_EMAIL="${WORDPRESS_SECOND_EMAIL:-${SECOND_USER}@${DOMAIN}}"
 case "$SECOND_EMAIL" in
   *@*.*) : ;;
   *) SECOND_EMAIL="${SECOND_USER}@${DOMAIN}";;
